@@ -3,18 +3,27 @@ package main
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-
 	config "github.com/ValSpp/gin-gorm-restapi/configs"
+	model "github.com/ValSpp/gin-gorm-restapi/models"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	config.InitialMigration()
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "test",
-		})
+	db := config.DatabaseConnection()
+	db.Table("users").AutoMigrate(&model.Users{})
+
+	router := gin.Default()
+	router.GET("", func(context *gin.Context) {
+		context.String(http.StatusOK, "Pong!")
 	})
-	r.Run()
+
+	server := &http.Server{
+		Addr:           ":8888",
+		Handler:        router,
+	}
+
+	err := server.ListenAndServe()
+	if err != nil {
+		panic(err)
+	}
 }
